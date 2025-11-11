@@ -1,0 +1,5 @@
+name: ExamplePlugin
+version: 1.0.0
+main: com.example.bungeecord.ExampleBungeeCordPlugin
+author: 1nstagram
+description: Example BungeeCord plugin demonstrating RabbitMQ cross-server communication

@@ -1,8 +1,8 @@
 package com.example.plugin;
 
-import com.rabbitmq.minecraft.RabbitMQClient;
-import com.rabbitmq.minecraft.config.RabbitMQConfig;
-import com.rabbitmq.minecraft.util.JsonSerializer;
+import io.hydrogendevelopments.celesmq.RabbitMQClient;
+import io.hydrogendevelopments.celesmq.config.RabbitMQConfig;
+import io.hydrogendevelopments.celesmq.util.JsonSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

@@ -1,0 +1,27 @@
+# RabbitMQ Configuration
+rabbitmq:
+  # RabbitMQ server hostname
+  host: "localhost"
+
+  # RabbitMQ server port (default: 5672)
+  port: 5672
+
+  # RabbitMQ authentication
+  username: "guest"
+  password: "guest"
+
+  # Virtual host (default: "/")
+  virtualHost: "/"
+
+  # Connection timeout in milliseconds
+  connectionTimeout: 10000
+
+  # Network recovery interval in milliseconds
+  networkRecoveryInterval: 5000
+
+  # Enable automatic recovery on connection loss
+  automaticRecoveryEnabled: true
+
+  # Consumer name (unique identifier for this BungeeCord instance)
+  # This should be unique across your network
+  consumer: "bungeecord-proxy-1"
