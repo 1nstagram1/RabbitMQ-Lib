@@ -92,7 +92,7 @@ Add the JitPack repository and dependency to your plugin's `pom.xml`:
     <dependency>
         <groupId>com.github.1nstagram1</groupId>
         <artifactId>CelesMQ</artifactId>
-        <version>2.0.0</version>
+        <version>2.0.1</version>
     </dependency>
 </dependencies>
 ```
@@ -109,7 +109,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.1nstagram1:CelesMQ:2.0.0'
+    implementation 'com.github.1nstagram1:CelesMQ:2.0.1'
 }
 ```
 
@@ -146,7 +146,7 @@ public class MyBungeePlugin extends Plugin {
 
     @Override
     public void onEnable() {
-        // Load from config - just like your original code!
+        // Load from config
         RabbitMQConfig config = new RabbitMQConfig.Builder()
             .host(getConfig().getString("rabbitmq.host"))
             .port(getConfig().getInt("rabbitmq.port"))
