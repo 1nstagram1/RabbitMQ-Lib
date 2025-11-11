@@ -1,8 +1,8 @@
 package io.hydrodevelopments.celesmq.rpc;
 
 import io.hydrodevelopments.celesmq.RabbitMQManager;
-import io.hydrodevelopments.celesmq.message.MessageResponse;
 import io.hydrodevelopments.celesmq.message.*;
+import io.hydrodevelopments.celesmq.message.MessageResponse;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

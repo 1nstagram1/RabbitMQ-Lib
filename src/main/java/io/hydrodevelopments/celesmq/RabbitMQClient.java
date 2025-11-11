@@ -3,10 +3,10 @@ package io.hydrodevelopments.celesmq;
 import io.hydrodevelopments.celesmq.config.RabbitMQConfig;
 import io.hydrodevelopments.celesmq.connection.RabbitMQConnectionManager;
 import io.hydrodevelopments.celesmq.listener.MessageListener;
+import io.hydrodevelopments.celesmq.platform.SpigotPlatform;
 import io.hydrodevelopments.celesmq.messaging.RabbitMQConsumer;
 import io.hydrodevelopments.celesmq.messaging.RabbitMQPublisher;
 import io.hydrodevelopments.celesmq.platform.Platform;
-import io.hydrodevelopments.celesmq.platform.SpigotPlatform;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
