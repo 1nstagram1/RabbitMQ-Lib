@@ -63,7 +63,7 @@ mq.on("action", msg -> {
 
 ## Requirements
 
-- Java 17 or higher
+- Java 21 or higher
 - One of the following platforms:
   - Spigot/Paper 1.20.4 or higher
   - BungeeCord 1.20 or higher
