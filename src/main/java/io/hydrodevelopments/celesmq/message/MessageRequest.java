@@ -32,7 +32,7 @@ public class MessageRequest {
 
   private JsonObject data;
   private int taskId;
-  private long timeout; // Must be explicitly set via timeout() method
+  private long timeout;
 
   /**
    * Constructor with custom send function for smart routing

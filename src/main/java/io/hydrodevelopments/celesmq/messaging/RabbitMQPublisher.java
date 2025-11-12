@@ -67,8 +67,6 @@ public class RabbitMQPublisher {
 
         // Publish message to default exchange with queue name as routing key
         channel.basicPublish("", queueName, props, message.getBytes(StandardCharsets.UTF_8));
-
-        logger.info("Message published to queue: " + queueName);
         future.complete(true);
 
       } catch (IOException e) {
@@ -122,8 +120,6 @@ public class RabbitMQPublisher {
 
         // Publish message
         channel.basicPublish(exchangeName, routingKey, props, message.getBytes(StandardCharsets.UTF_8));
-
-        logger.info("Message published to exchange: " + exchangeName + " with routing key: " + routingKey);
         future.complete(true);
 
       } catch (IOException e) {
