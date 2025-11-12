@@ -30,10 +30,8 @@ public class RabbitMQPublisher {
 
   /**
    * Publishes a message to a specific queue
-   *
    * @param queueName name of the queue
-   * @param message   message content
-   *
+   * @param message message content
    * @return CompletableFuture indicating success/failure
    */
   public CompletableFuture<Boolean> publishToQueue(String queueName, String message) {
@@ -42,11 +40,9 @@ public class RabbitMQPublisher {
 
   /**
    * Publishes a message to a specific queue with durability option
-   *
-   * @param queueName  name of the queue
-   * @param message    message content
+   * @param queueName name of the queue
+   * @param message message content
    * @param persistent whether message should be persistent
-   *
    * @return CompletableFuture indicating success/failure
    */
   public CompletableFuture<Boolean> publishToQueue(String queueName, String message, boolean persistent) {
@@ -56,12 +52,18 @@ public class RabbitMQPublisher {
       try {
         Channel channel = connectionManager.getChannel();
 
-        // Declare queue, idempotent operation
-        channel.queueDeclare(queueName, true, false, false, null);
+        // Declare queue with configured parameters
+        boolean durable = connectionManager.getConfig().isQueueDurable();
+        boolean exclusive = connectionManager.getConfig().isQueueExclusive();
+        boolean autoDelete = connectionManager.getConfig().isQueueAutoDelete();
+        Map<String, Object> arguments = connectionManager.getConfig().getQueueArguments();
+
+        channel.queueDeclare(queueName, durable, exclusive, autoDelete, arguments);
 
         // Prepare message properties
-        AMQP.BasicProperties props =
-          persistent ? MessageProperties.PERSISTENT_TEXT_PLAIN : MessageProperties.TEXT_PLAIN;
+        AMQP.BasicProperties props = persistent ?
+                MessageProperties.PERSISTENT_TEXT_PLAIN :
+                MessageProperties.TEXT_PLAIN;
 
         // Publish message to default exchange with queue name as routing key
         channel.basicPublish("", queueName, props, message.getBytes(StandardCharsets.UTF_8));
@@ -80,11 +82,9 @@ public class RabbitMQPublisher {
 
   /**
    * Publishes a message to an exchange with a routing key
-   *
    * @param exchangeName name of the exchange
-   * @param routingKey   routing key
-   * @param message      message content
-   *
+   * @param routingKey routing key
+   * @param message message content
    * @return CompletableFuture indicating success/failure
    */
   public CompletableFuture<Boolean> publishToExchange(String exchangeName, String routingKey, String message) {
@@ -93,32 +93,28 @@ public class RabbitMQPublisher {
 
   /**
    * Publishes a message to an exchange with full options
-   *
    * @param exchangeName name of the exchange
-   * @param routingKey   routing key
-   * @param message      message content
+   * @param routingKey routing key
+   * @param message message content
    * @param exchangeType type of exchange (direct, fanout, topic, headers)
-   * @param persistent   whether message should be persistent
-   *
+   * @param persistent whether message should be persistent
    * @return CompletableFuture indicating success/failure
    */
-  public CompletableFuture<Boolean> publishToExchange(String exchangeName,
-    String routingKey,
-    String message,
-    String exchangeType,
-    boolean persistent) {
+  public CompletableFuture<Boolean> publishToExchange(String exchangeName, String routingKey,
+                                                      String message, String exchangeType, boolean persistent) {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
 
     platform.runAsync(() -> {
       try {
         Channel channel = connectionManager.getChannel();
 
-        // Declare exchange, idempotent operation
+        // Declare exchange (idempotent operation)
         channel.exchangeDeclare(exchangeName, exchangeType, true);
 
         // Prepare message properties
-        AMQP.BasicProperties props =
-          persistent ? MessageProperties.PERSISTENT_TEXT_PLAIN : MessageProperties.TEXT_PLAIN;
+        AMQP.BasicProperties props = persistent ?
+                MessageProperties.PERSISTENT_TEXT_PLAIN :
+                MessageProperties.TEXT_PLAIN;
 
         // Publish message
         channel.basicPublish(exchangeName, routingKey, props, message.getBytes(StandardCharsets.UTF_8));
@@ -137,18 +133,14 @@ public class RabbitMQPublisher {
 
   /**
    * Publishes a message with custom headers
-   *
    * @param exchangeName name of the exchange
-   * @param routingKey   routing key
-   * @param message      message content
-   * @param headers      custom headers
-   *
+   * @param routingKey routing key
+   * @param message message content
+   * @param headers custom headers
    * @return CompletableFuture indicating success/failure
    */
-  public CompletableFuture<Boolean> publishWithHeaders(String exchangeName,
-    String routingKey,
-    String message,
-    Map<String, Object> headers) {
+  public CompletableFuture<Boolean> publishWithHeaders(String exchangeName, String routingKey,
+                                                       String message, Map<String, Object> headers) {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
 
     platform.runAsync(() -> {
@@ -162,10 +154,11 @@ public class RabbitMQPublisher {
         AMQP.BasicProperties.Builder propsBuilder = new AMQP.BasicProperties.Builder();
         propsBuilder.headers(headers);
         propsBuilder.contentType("text/plain");
-        propsBuilder.deliveryMode(2); // persistent
+        propsBuilder.deliveryMode(2);
 
         // Publish message
-        channel.basicPublish(exchangeName, routingKey, propsBuilder.build(), message.getBytes(StandardCharsets.UTF_8));
+        channel.basicPublish(exchangeName, routingKey, propsBuilder.build(),
+                message.getBytes(StandardCharsets.UTF_8));
 
         logger.info("Message with headers published to exchange: " + exchangeName);
         future.complete(true);
@@ -181,10 +174,8 @@ public class RabbitMQPublisher {
 
   /**
    * Publishes a message for fanout (broadcast) pattern
-   *
    * @param exchangeName name of the fanout exchange
-   * @param message      message content
-   *
+   * @param message message content
    * @return CompletableFuture indicating success/failure
    */
   public CompletableFuture<Boolean> broadcast(String exchangeName, String message) {

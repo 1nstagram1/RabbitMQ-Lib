@@ -32,11 +32,9 @@ public class RabbitMQConsumer {
 
   /**
    * Starts consuming messages from a queue
-   *
    * @param queueName name of the queue to consume from
-   * @param listener  callback for handling messages
-   * @param autoAck   whether to automatically acknowledge messages
-   *
+   * @param listener callback for handling messages
+   * @param autoAck whether to automatically acknowledge messages
    * @return true if consumer started successfully, false otherwise
    */
   public boolean consume(String queueName, MessageListener listener, boolean autoAck) {
@@ -45,20 +43,23 @@ public class RabbitMQConsumer {
 
   /**
    * Starts consuming messages from a queue with sync option
-   *
-   * @param queueName        name of the queue to consume from
-   * @param listener         callback for handling messages
-   * @param autoAck          whether to automatically acknowledge messages
+   * @param queueName name of the queue to consume from
+   * @param listener callback for handling messages
+   * @param autoAck whether to automatically acknowledge messages
    * @param syncToMainThread whether to execute listener on main Minecraft thread
-   *
    * @return true if consumer started successfully, false otherwise
    */
   public boolean consume(String queueName, MessageListener listener, boolean autoAck, boolean syncToMainThread) {
     try {
       Channel channel = connectionManager.createChannel();
 
-      // Declare queue (idempotent)
-      channel.queueDeclare(queueName, true, false, false, null);
+      // Declare queue with configured parameters
+      boolean durable = connectionManager.getConfig().isQueueDurable();
+      boolean exclusive = connectionManager.getConfig().isQueueExclusive();
+      boolean autoDelete = connectionManager.getConfig().isQueueAutoDelete();
+      Map<String, Object> arguments = connectionManager.getConfig().getQueueArguments();
+
+      channel.queueDeclare(queueName, durable, exclusive, autoDelete, arguments);
 
       // Set QoS prefetch count
       channel.basicQos(1);
@@ -113,10 +114,8 @@ public class RabbitMQConsumer {
 
   /**
    * Subscribes to a fanout exchange (broadcast pattern)
-   *
    * @param exchangeName name of the exchange
-   * @param listener     callback for handling messages
-   *
+   * @param listener callback for handling messages
    * @return true if subscription successful, false otherwise
    */
   public boolean subscribeToBroadcast(String exchangeName, MessageListener listener) {
@@ -125,11 +124,9 @@ public class RabbitMQConsumer {
 
   /**
    * Subscribes to a fanout exchange with sync option
-   *
-   * @param exchangeName     name of the exchange
-   * @param listener         callback for handling messages
+   * @param exchangeName name of the exchange
+   * @param listener callback for handling messages
    * @param syncToMainThread whether to execute listener on main thread
-   *
    * @return true if subscription successful, false otherwise
    */
   public boolean subscribeToBroadcast(String exchangeName, MessageListener listener, boolean syncToMainThread) {
@@ -180,11 +177,9 @@ public class RabbitMQConsumer {
 
   /**
    * Subscribes to a topic exchange with pattern matching
-   *
-   * @param exchangeName      name of the topic exchange
+   * @param exchangeName name of the topic exchange
    * @param routingKeyPattern routing key pattern (e.g., "server.*.events")
-   * @param listener          callback for handling messages
-   *
+   * @param listener callback for handling messages
    * @return true if subscription successful, false otherwise
    */
   public boolean subscribeToTopic(String exchangeName, String routingKeyPattern, MessageListener listener) {
@@ -193,18 +188,14 @@ public class RabbitMQConsumer {
 
   /**
    * Subscribes to a topic exchange with pattern matching and sync option
-   *
-   * @param exchangeName      name of the topic exchange
+   * @param exchangeName name of the topic exchange
    * @param routingKeyPattern routing key pattern (e.g., "server.*.events")
-   * @param listener          callback for handling messages
-   * @param syncToMainThread  whether to execute listener on main thread
-   *
+   * @param listener callback for handling messages
+   * @param syncToMainThread whether to execute listener on main thread
    * @return true if subscription successful, false otherwise
    */
-  public boolean subscribeToTopic(String exchangeName,
-    String routingKeyPattern,
-    MessageListener listener,
-    boolean syncToMainThread) {
+  public boolean subscribeToTopic(String exchangeName, String routingKeyPattern,
+                                  MessageListener listener, boolean syncToMainThread) {
     try {
       Channel channel = connectionManager.createChannel();
 
@@ -252,7 +243,6 @@ public class RabbitMQConsumer {
 
   /**
    * Gets the map of active consumers
-   *
    * @return map of queue/exchange names to consumer tags
    */
   public Map<String, String> getActiveConsumers() {

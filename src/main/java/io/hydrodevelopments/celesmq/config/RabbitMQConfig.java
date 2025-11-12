@@ -26,6 +26,10 @@ public class RabbitMQConfig {
   private final String consumerName;
   private final Map<String, String> channels;
   private final boolean autoSubscribe;
+  private final boolean queueDurable;
+  private final boolean queueExclusive;
+  private final boolean queueAutoDelete;
+  private final Map<String, Object> queueArguments;
 
   private RabbitMQConfig(Builder builder) {
     this.host = builder.host;
@@ -46,6 +50,10 @@ public class RabbitMQConfig {
     this.consumerName = builder.consumerName;
     this.channels = new HashMap<>(builder.channels);
     this.autoSubscribe = builder.autoSubscribe;
+    this.queueDurable = builder.queueDurable;
+    this.queueExclusive = builder.queueExclusive;
+    this.queueAutoDelete = builder.queueAutoDelete;
+    this.queueArguments = builder.queueArguments != null ? new HashMap<>(builder.queueArguments) : null;
   }
 
   public String getHost() {
@@ -120,8 +128,25 @@ public class RabbitMQConfig {
     return validateServerCertificate;
   }
 
+  public boolean isQueueDurable() {
+    return queueDurable;
+  }
+
+  public boolean isQueueExclusive() {
+    return queueExclusive;
+  }
+
+  public boolean isQueueAutoDelete() {
+    return queueAutoDelete;
+  }
+
+  public Map<String, Object> getQueueArguments() {
+    return queueArguments != null ? new HashMap<>(queueArguments) : null;
+  }
+
   /**
-   * Builder class for RabbitMQConfig All fields must be explicitly configured - no defaults
+   * Builder class for RabbitMQConfig
+   * All fields must be explicitly configured - no defaults
    */
   public static class Builder {
     private String host;
@@ -135,6 +160,8 @@ public class RabbitMQConfig {
     private String consumerName;
     private Map<String, String> channels = new HashMap<>();
     private boolean autoSubscribe;
+
+    // SSL/TLS configuration (optional)
     private boolean useSsl = false;
     private String sslProtocol = "TLSv1.3";
     private String trustStorePath;
@@ -142,6 +169,12 @@ public class RabbitMQConfig {
     private String keyStorePath;
     private String keyStorePassword;
     private boolean validateServerCertificate = true;
+
+    // Queue configuration
+    private boolean queueDurable = true;
+    private boolean queueExclusive = false;
+    private boolean queueAutoDelete = false;
+    private Map<String, Object> queueArguments;
 
     public Builder host(String host) {
       this.host = host;
@@ -184,7 +217,8 @@ public class RabbitMQConfig {
     }
 
     /**
-     * Sets the consumer name (queue name for receiving messages) If not set, a random name will be generated
+     * Sets the consumer name (queue name for receiving messages)
+     * If not set, a random name will be generated
      */
     public Builder consumerName(String consumerName) {
       this.consumerName = consumerName;
@@ -208,7 +242,8 @@ public class RabbitMQConfig {
     }
 
     /**
-     * Sets whether to automatically subscribe to configured channels Default is true
+     * Sets whether to automatically subscribe to configured channels
+     * Default is true
      */
     public Builder autoSubscribe(boolean autoSubscribe) {
       this.autoSubscribe = autoSubscribe;
@@ -216,7 +251,8 @@ public class RabbitMQConfig {
     }
 
     /**
-     * Enables SSL/TLS encryption for the RabbitMQ connection Default is false (unencrypted)
+     * Enables SSL/TLS encryption for the RabbitMQ connection
+     * Default is false (unencrypted)
      */
     public Builder useSsl(boolean useSsl) {
       this.useSsl = useSsl;
@@ -224,7 +260,9 @@ public class RabbitMQConfig {
     }
 
     /**
-     * Sets the SSL/TLS protocol version Default is "TLSv1.3" Common values: "TLSv1.2", "TLSv1.3", "TLS"
+     * Sets the SSL/TLS protocol version
+     * Default is "TLSv1.3"
+     * Common values: "TLSv1.2", "TLSv1.3", "TLS"
      */
     public Builder sslProtocol(String sslProtocol) {
       this.sslProtocol = sslProtocol;
@@ -232,8 +270,9 @@ public class RabbitMQConfig {
     }
 
     /**
-     * Sets the path to the trust store file for SSL/TLS Used to verify server certificates Optional - if not set,
-     * system default trust store is used
+     * Sets the path to the trust store file for SSL/TLS
+     * Used to verify server certificates
+     * Optional - if not set, system default trust store is used
      */
     public Builder trustStorePath(String trustStorePath) {
       this.trustStorePath = trustStorePath;
@@ -249,8 +288,8 @@ public class RabbitMQConfig {
     }
 
     /**
-     * Sets the path to the key store file for client certificate authentication (mTLS) Optional - only needed for
-     * mutual TLS authentication
+     * Sets the path to the key store file for client certificate authentication (mTLS)
+     * Optional - only needed for mutual TLS authentication
      */
     public Builder keyStorePath(String keyStorePath) {
       this.keyStorePath = keyStorePath;
@@ -266,11 +305,88 @@ public class RabbitMQConfig {
     }
 
     /**
-     * Sets whether to validate server certificates Default is true (recommended for production) Set to false only for
-     * testing with self-signed certificates
+     * Sets whether to validate server certificates
+     * Default is true (recommended for production)
+     * Set to false only for testing with self-signed certificates
      */
     public Builder validateServerCertificate(boolean validateServerCertificate) {
       this.validateServerCertificate = validateServerCertificate;
+      return this;
+    }
+
+    /**
+     * Sets whether queues should be durable (survive broker restart)
+     * Default is true
+     *
+     * WARNING: Changing this from an existing queue's setting will cause
+     * PRECONDITION_FAILED errors. Delete the old queue first or use a new name.
+     */
+    public Builder queueDurable(boolean queueDurable) {
+      this.queueDurable = queueDurable;
+      return this;
+    }
+
+    /**
+     * Sets whether queues should be exclusive (used by only one connection)
+     * Default is false
+     *
+     * WARNING: Changing this from an existing queue's setting will cause
+     * PRECONDITION_FAILED errors. Delete the old queue first or use a new name.
+     */
+    public Builder queueExclusive(boolean queueExclusive) {
+      this.queueExclusive = queueExclusive;
+      return this;
+    }
+
+    /**
+     * Sets whether queues should auto-delete when no longer in use
+     * Default is false
+     *
+     * WARNING: Changing this from an existing queue's setting will cause
+     * PRECONDITION_FAILED errors. Delete the old queue first or use a new name.
+     */
+    public Builder queueAutoDelete(boolean queueAutoDelete) {
+      this.queueAutoDelete = queueAutoDelete;
+      return this;
+    }
+
+    /**
+     * Sets queue arguments (e.g., x-message-ttl, x-max-length)
+     *
+     * Common arguments:
+     * - "x-message-ttl": Message time-to-live in milliseconds (Integer)
+     * - "x-max-length": Maximum queue length (Integer)
+     * - "x-max-length-bytes": Maximum queue size in bytes (Integer)
+     * - "x-dead-letter-exchange": Dead letter exchange name (String)
+     * - "x-max-priority": Maximum priority value (Integer, 1-255)
+     *
+     * Example:
+     * <pre>
+     * Map<String, Object> args = new HashMap<>();
+     * args.put("x-message-ttl", 5000);  // 5 second TTL
+     * builder.queueArguments(args);
+     * </pre>
+     *
+     * WARNING: Changing arguments from an existing queue's settings will cause
+     * PRECONDITION_FAILED errors. Delete the old queue first or use a new name.
+     */
+    public Builder queueArguments(Map<String, Object> queueArguments) {
+      this.queueArguments = queueArguments != null ? new HashMap<>(queueArguments) : null;
+      return this;
+    }
+
+    /**
+     * Adds a single queue argument
+     *
+     * @param key argument key (e.g., "x-message-ttl")
+     * @param value argument value (e.g., 5000)
+     * @return this builder
+     */
+    public Builder addQueueArgument(String key, Object value) {
+      if (this.queueArguments == null) {
+        this.queueArguments = new HashMap<>();
+      }
+      this.queueArguments.put(key, value);
       return this;
     }
 
