@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
 /**
@@ -27,17 +28,32 @@ public class MessageRequest {
   private final RabbitMQClient client;
   private final Logger logger;
   private final String replyQueue;
+  private final BiFunction<String, String, CompletableFuture<Boolean>> sendFunction;
 
   private JsonObject data;
   private int taskId;
-  private long timeout;
+  private long timeout; // Must be explicitly set via timeout() method
 
-  public MessageRequest(RabbitMQClient client, Logger logger, String replyQueue) {
+  /**
+   * Constructor with custom send function for smart routing
+   */
+  public MessageRequest(RabbitMQClient client, Logger logger, String replyQueue,
+                        BiFunction<String, String, CompletableFuture<Boolean>> sendFunction) {
     this.client = client;
     this.logger = logger;
     this.replyQueue = replyQueue;
+    this.sendFunction = sendFunction;
     this.data = new JsonObject();
     this.taskId = random.nextInt(100000);
+  }
+
+  /**
+   * Legacy constructor for backward compatibility (uses exchange routing)
+   */
+  @Deprecated
+  public MessageRequest(RabbitMQClient client, Logger logger, String replyQueue) {
+    this(client, logger, replyQueue, (channel, message) ->
+            client.publishToExchange(channel, "", message));
   }
 
   /**
@@ -312,15 +328,9 @@ public class MessageRequest {
 
   /**
    * Sends the request and returns a CompletableFuture
+   * Supports both direct queue and exchange-based routing
    */
-  public CompletableFuture<MessageResponse> sendTo(String exchange) {
-    return sendTo(exchange, "");
-  }
-
-  /**
-   * Sends the request to a specific exchange with routing key
-   */
-  public CompletableFuture<MessageResponse> sendTo(String exchange, String routingKey) {
+  public CompletableFuture<MessageResponse> sendTo(String channel) {
     CompletableFuture<MessageResponse> future = new CompletableFuture<>();
 
     // Add taskID and replyTo
@@ -332,9 +342,9 @@ public class MessageRequest {
 
     long startTime = System.currentTimeMillis();
 
-    // Send the message
+    // Send the message using the smart routing function
     String message = data.toString();
-    client.publishToExchange(exchange, routingKey, message).thenAccept(success -> {
+    sendFunction.apply(channel, message).thenAccept(success -> {
       if (!success) {
         future.completeExceptionally(new RuntimeException("Failed to send request"));
         pendingRequests.remove(taskId);
@@ -385,7 +395,7 @@ public class MessageRequest {
       try {
         status = ResponseStatus.fromString(statusStr);
       } catch (IllegalArgumentException e) {
-        // Default to SUCCESS if unrecognized
+        // Keep default SUCCESS status
       }
     }
 
@@ -393,8 +403,17 @@ public class MessageRequest {
   }
 
   /**
-   * Creates a new request builder
+   * Creates a new request builder with smart routing
    */
+  public static MessageRequest create(RabbitMQClient client, Logger logger, String replyQueue,
+                                      BiFunction<String, String, CompletableFuture<Boolean>> sendFunction) {
+    return new MessageRequest(client, logger, replyQueue, sendFunction);
+  }
+
+  /**
+   * Creates a new request builder (legacy - uses exchange routing)
+   */
+  @Deprecated
   public static MessageRequest create(RabbitMQClient client, Logger logger, String replyQueue) {
     return new MessageRequest(client, logger, replyQueue);
   }

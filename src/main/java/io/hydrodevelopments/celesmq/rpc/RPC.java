@@ -124,7 +124,7 @@ public class RPC {
     private final String procedure;
     private final String rpcCallAction;
     private final Map<String, Object> args = new ConcurrentHashMap<>();
-    private long timeout; // Must be explicitly set via timeout() method
+    private long timeout;
 
     public RPCCallBuilder(RabbitMQManager manager, String server, String procedure, String rpcCallAction) {
       this.manager = manager;

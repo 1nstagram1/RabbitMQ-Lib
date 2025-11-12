@@ -179,7 +179,7 @@ public class RabbitMQManager {
      * @return new MessageRequest builder
      */
     public MessageRequest request() {
-        return MessageRequest.create(client, platform.getLogger(), replyQueue);
+        return MessageRequest.create(client, platform.getLogger(), replyQueue, this::send);
     }
 
     /**
