@@ -2,7 +2,7 @@
 
 [![JitPack](https://jitpack.io/v/1nstagram1/CelesMQ.svg)](https://jitpack.io/#1nstagram1/CelesMQ)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java 17+](https://img.shields.io/badge/Java-21%2B-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html)
+[![Java 21+](https://img.shields.io/badge/Java-21%2B-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html)
 [![Platforms](https://img.shields.io/badge/Platforms-7%2B-blue.svg)](#supported-platforms)
 
 **A next-generation RabbitMQ library for Minecraft networks that makes distributed messaging ridiculously simple.**
